@@ -116,7 +116,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       //if (!user) {
         if (runcheck) {
           await this.db.deleteFrom("user")
-          .where('did', '=', post.author)
+          .where('did', '=', post.author).execute();
           const profile = await agent.api.app.bsky.actor.getProfile({ actor: post.author })
           console.log(`fetched profile for ${post.author}: @${profile.data.handle} ${profile.data.displayName}`)
           await this.db
