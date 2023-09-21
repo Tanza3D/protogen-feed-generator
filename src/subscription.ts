@@ -89,6 +89,8 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       || text.includes('^^')
       || text.includes('^^')
       || text.includes('rawr')
+      || text.includes('sona')
+      || text.includes('fursona')
     )
   }
   async handleEvent(evt: RepoEvent, agent: AtpAgent) {
