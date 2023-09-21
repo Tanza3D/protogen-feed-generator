@@ -25,16 +25,16 @@ const run = async () => {
 
   // (Optional) A description of your feed
   // Ex: Top trending content from the whole network
-  const description = 'A feed of just Protogens! Have "protogen" or "proot" in your user description or name, or include #proot or #protogen to be included.'
+  const description = 'A feed of just Protogens! Use #protogenfeed for your post to be included, or post "i\'m a protogen!" to be added permanently! You may be automatically added if your bio includes "protogen".'
 
   // (Optional) The path to an image to be used as your feed's avatar
   // Ex: ~/path/to/avatar.jpeg
-  const avatar: string = 'avatar.jpg'
+  const avatar: string = 'scripts/avatar.jpg'
 
   // -------------------------------------
   // NO NEED TO TOUCH ANYTHING BELOW HERE
   // -------------------------------------
-
+  
   if (!process.env.FEEDGEN_SERVICE_DID && !process.env.FEEDGEN_HOSTNAME)
     throw new Error('Please provide a hostname in the .env file')
 

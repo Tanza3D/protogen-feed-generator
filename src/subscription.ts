@@ -34,7 +34,9 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
   }
   isProtogenTag(name: string = "") {
     return (name.toLowerCase().includes('#protogen')
-      || name.toLowerCase().includes('#proot'))
+      || name.toLowerCase().includes('#proot')
+      || name.toLowerCase().includes('#protogenfeed')
+      || name.toLowerCase().includes('#protogenfeedbsky'))
   }
 
   isFurry(name: string = "") {
@@ -83,6 +85,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       || text.includes('^w^')
       || text.includes('^^')
       || text.includes('^^')
+      || text.includes('rawr')
     )
   }
   async handleEvent(evt: RepoEvent, agent: AtpAgent) {
@@ -119,7 +122,9 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
             })
             .execute()
 
-          if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description)) {
+          if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description) || 
+          post.record.text.toLowerCase().includes("i'm a protogen")
+          || post.record.text.toLowerCase().includes("im a protogen")) {
             await this.db.insertInto('protogen').values({ did: post.author }).execute()
             console.log('\x1b[33mnew protogen collected!!\x1b[0m')
             console.log(`${post.author} is ${profile.data.handle} with display name '${profile.data.displayName}'`)
