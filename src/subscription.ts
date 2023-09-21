@@ -21,10 +21,6 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
 
     // handle post creates
     for (const post of ops.posts.creates) {
-      if (!this.isProtogen(post.record.text) && !this.isProtogenTag(post.record.text)) {
-        //console.log("is not protogen");
-        return;
-      }
       const user = await this.db
         .selectFrom('user')
         .select(['did', 'displayName', 'handle'])
@@ -33,6 +29,11 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
 
       // user not seen before, cache their profile
       if (!user) {
+        if (!this.isProtogen(post.record.text) && !this.isProtogenTag(post.record.text)) {
+          //console.log("is not protogen");
+          return;
+        }
+        
         const profile = await agent.api.app.bsky.actor.getProfile({ actor: post.author })
         console.log(`fetched profile for ${post.author}: @${profile.data.handle} ${profile.data.displayName}`)
         await this.db
