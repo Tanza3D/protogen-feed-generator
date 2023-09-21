@@ -6,9 +6,10 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
   isProtogen(name: string = "") {
     return (name.toLowerCase().includes(' protogen')
       || name.toLowerCase().includes('protogen ')
+      || name.toLowerCase().includes('protogen')
       || name.toLowerCase().includes(' proot')
-      || name.toLowerCase().includes(' proot ') ||
-      ((name.toLowerCase().includes('protogen') || name.toLowerCase().includes('proot')) && name.toLowerCase().includes('furry')));
+      || name.toLowerCase().includes(' proot ')
+      || ((name.toLowerCase().includes('protogen') || name.toLowerCase().includes('proot')) && name.toLowerCase().includes('furry')));
   }
   async handleEvent(evt: RepoEvent, agent: AtpAgent) {
     if (!isCommit(evt)) return
@@ -16,6 +17,10 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
 
     // handle post creates
     for (const post of ops.posts.creates) {
+      if (!this.isProtogen(post.record.text)) {
+        console.log("is not protogen");
+        return;
+      }
       const user = await this.db
         .selectFrom('user')
         .select(['did', 'displayName', 'handle'])
@@ -37,8 +42,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
           })
           .execute()
 
-        if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description))
-        {
+        if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description)) {
           await this.db.insertInto('protogen').values({ did: post.author }).execute()
           console.log('\x1b[33mnew protogen collected!!\x1b[0m')
           console.log(`${post.author} is ${profile.data.handle} with display name '${profile.data.displayName}'`)
