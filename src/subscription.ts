@@ -25,6 +25,13 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       || name.toLowerCase().includes(' proots ')
       || ((name.toLowerCase().includes('protogen') || name.toLowerCase().includes('proot')) && name.toLowerCase().includes('furry')));
   }
+  isProtogenStrict(name: string = "") {
+    return (name.toLowerCase().includes(' protogen ')
+      || name.toLowerCase().includes(' protogens ')
+      || name.toLowerCase().includes(' proot ')
+      || name.toLowerCase().includes(' proots ')
+      || ((name.toLowerCase().includes('protogen') || name.toLowerCase().includes('proot')) && name.toLowerCase().includes('furry')));
+  }
   isProtogenTag(name: string = "") {
     return (name.toLowerCase().includes('#protogen')
       || name.toLowerCase().includes('#proot'))
@@ -103,7 +110,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
         console.log(`new proot post: '${protogen.displayName}' @${protogen.handle}: '${post.record.text}'`)
         feed = 'protogens'
       }
-      if (this.isProtogenTag(post.record.text)) {
+      if (this.isProtogenTag(post.record.text) || this.isProtogenStrict(post.record.text)) {
         console.log(`new post about proot: '${post.record.text}'`);
         feed = 'protogens'
       }
