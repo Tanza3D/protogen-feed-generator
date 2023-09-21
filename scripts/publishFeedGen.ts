@@ -17,19 +17,19 @@ const run = async () => {
   // A short name for the record that will show in urls
   // Lowercase with no spaces.
   // Ex: whats-hot
-  const recordName = 'tanzafeed'
+  const recordName = 'protogens'
 
   // A display name for your feed
   // Ex: What's Hot
-  const displayName = 'FIX FIX FIX'
+  const displayName = 'The Protogens'
 
   // (Optional) A description of your feed
   // Ex: Top trending content from the whole network
-  const description = 'FIX FIX FIX'
+  const description = 'A feed of just Protogens! Have "protogen" or "proot" in your user description or name, or include #proot or #protogen to be included.'
 
   // (Optional) The path to an image to be used as your feed's avatar
   // Ex: ~/path/to/avatar.jpeg
-  const avatar: string = 'FIX FIX FIX'
+  const avatar: string = 'avatar.jpg'
 
   // -------------------------------------
   // NO NEED TO TOUCH ANYTHING BELOW HERE
