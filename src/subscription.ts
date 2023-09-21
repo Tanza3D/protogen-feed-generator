@@ -115,6 +115,8 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       // ! note: remove user check, so if someone becomes protogen after a week they actually get picked up :)
       //if (!user) {
         if (runcheck) {
+          await this.db.deleteFrom("user")
+          .where('did', '=', post.author)
           const profile = await agent.api.app.bsky.actor.getProfile({ actor: post.author })
           console.log(`fetched profile for ${post.author}: @${profile.data.handle} ${profile.data.displayName}`)
           await this.db
