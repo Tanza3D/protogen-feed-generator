@@ -3,6 +3,13 @@ import { FirehoseSubscriptionBase, getOpsByType } from './util/subscription'
 import { AtpAgent } from '@atproto/api'
 
 export class FirehoseSubscription extends FirehoseSubscriptionBase {
+  isProtogen(name: string = "") {
+    return (name.toLowerCase().includes(' protogen')
+      || name.toLowerCase().includes('protogen ')
+      || name.toLowerCase().includes(' proot')
+      || name.toLowerCase().includes(' proot ') ||
+      ((name.toLowerCase().includes('protogen') || name.toLowerCase().includes('proot')) && name.toLowerCase().includes('furry')));
+  }
   async handleEvent(evt: RepoEvent, agent: AtpAgent) {
     if (!isCommit(evt)) return
     const ops = await getOpsByType(evt)
@@ -30,16 +37,8 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
           })
           .execute()
 
-        if (
-           profile.data.handle.toLowerCase().includes('protogen') 
-           || profile.data.displayName?.toLowerCase().includes('protogen')
-        || profile.data.description?.toLowerCase().includes(' protogen')
-        || profile.data.description?.toLowerCase().includes('protogen ')
-        || profile.data.description?.toLowerCase().includes(' proot')
-        || profile.data.description?.toLowerCase().includes(' proot ') ||
-        ((profile.data.description?.toLowerCase().includes('protogen') || profile.data.description?.toLowerCase().includes('proot')) && profile.data.description?.toLowerCase().includes('furry'))
-        /* || post.record.text.toLowerCase().includes('#protogen')
-        || post.record.text.toLowerCase().includes('#proot') */) {
+        if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description))
+        {
           await this.db.insertInto('protogen').values({ did: post.author }).execute()
           console.log('\x1b[33mnew protogen collected!!\x1b[0m')
           console.log(`${post.author} is ${profile.data.handle} with display name '${profile.data.displayName}'`)
@@ -59,7 +58,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
           .where('did', '=', post.author)
           .execute()
 
-        if (profile.data.displayName?.toLowerCase().includes('protogen')) {
+        if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description)) {
           const existingprotogen = await this.db
             .selectFrom('protogen')
             .select('did')
@@ -92,8 +91,8 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
         console.log(`new proot post: '${protogen.displayName}' @${protogen.handle}: '${post.record.text}'`)
         feed = 'protogens'
       }
-      if( post.record.text.toLowerCase().includes('#protogen')
-      || post.record.text.toLowerCase().includes('#proot')) {
+      if (post.record.text.toLowerCase().includes('#protogen')
+        || post.record.text.toLowerCase().includes('#proot')) {
         console.log(`new post about proot: '${post.record.text}'`);
         feed = 'protogens'
       }
