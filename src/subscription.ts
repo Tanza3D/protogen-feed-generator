@@ -112,7 +112,8 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
         runcheck = true;
       }
 
-      if (!user) {
+      // ! note: remove user check, so if someone becomes protogen after a week they actually get picked up :)
+      //if (!user) {
         if (runcheck) {
           const profile = await agent.api.app.bsky.actor.getProfile({ actor: post.author })
           console.log(`fetched profile for ${post.author}: @${profile.data.handle} ${profile.data.displayName}`)
@@ -137,7 +138,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
             console.log("is not protogen");
           }
         }
-      }
+      //}
 
       // re-fetch db record
       const protogen = await this.db
