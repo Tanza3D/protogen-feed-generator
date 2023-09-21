@@ -48,7 +48,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
     if (this.isProtogen(name)) return true;
     if (this.isProtogenTag(name)) return true;
     return (
-         text.includes('furry')
+      text.includes('furry')
       || text.includes('furryart')
       || text.includes('beep')
       || text.includes('fanart')
@@ -122,9 +122,9 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
             })
             .execute()
 
-          if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description) || 
-          post.record.text.toLowerCase().includes("i'm a protogen")
-          || post.record.text.toLowerCase().includes("im a protogen")) {
+          if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description) ||
+            post.record.text.toLowerCase().includes("i'm a protogen")
+            || post.record.text.toLowerCase().includes("im a protogen")) {
             await this.db.insertInto('protogen').values({ did: post.author }).execute()
             console.log('\x1b[33mnew protogen collected!!\x1b[0m')
             console.log(`${post.author} is ${profile.data.handle} with display name '${profile.data.displayName}'`)
@@ -152,21 +152,23 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
         console.log(`new post about proot: '${post.record.text}'`);
         feed = 'protogens'
       }
-      await this.db
-        .insertInto('post')
-        .values({
-          uri: post.uri,
-          cid: post.cid,
-          replyParent: post.record?.reply?.parent.uri ?? null,
-          replyRoot: post.record?.reply?.root.uri ?? null,
-          indexedAt: new Date().toISOString(),
-          text: post.record.text,
-          feed: feed,
-          author: post.author,
-          likeCount: 0,
-        })
-        .onConflict(oc => oc.doNothing())
-        .execute()
+      if (feed != "") {
+        await this.db
+          .insertInto('post')
+          .values({
+            uri: post.uri,
+            cid: post.cid,
+            replyParent: post.record?.reply?.parent.uri ?? null,
+            replyRoot: post.record?.reply?.root.uri ?? null,
+            indexedAt: new Date().toISOString(),
+            text: post.record.text,
+            feed: feed,
+            author: post.author,
+            likeCount: 0,
+          })
+          .onConflict(oc => oc.doNothing())
+          .execute()
+      }
     }
 
     // handle deletes
