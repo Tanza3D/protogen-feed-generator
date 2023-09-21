@@ -44,11 +44,20 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
     // ? yeah
     if (this.isProtogen(name)) return true;
     if (this.isProtogenTag(name)) return true;
-    return (name.toLowerCase().includes('#furry')
-      || name.toLowerCase().includes('#furryart')
-      || name.toLowerCase().includes('furry art')
+    return (
+      name.toLowerCase().includes('furry')
       || name.toLowerCase().includes('furryart')
       || name.toLowerCase().includes('beep')
+      || name.toLowerCase().includes('fanart')
+      || name.toLowerCase().includes('ych')
+      || name.toLowerCase().includes('blahaj')
+      || name.toLowerCase().includes('blåhaj')
+      || name.toLowerCase().includes('furries')
+      || name.toLowerCase().includes('fursuit')
+      || name.toLowerCase().includes('fursuiter')
+      || name.toLowerCase().includes('snoot')
+      || name.toLowerCase().includes('doodle')
+      || name.toLowerCase().includes('commission')
       || name.toLowerCase().includes('cute')
     )
   }
