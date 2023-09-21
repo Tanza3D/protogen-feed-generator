@@ -4,6 +4,12 @@ import { AtpAgent } from '@atproto/api'
 
 export class FirehoseSubscription extends FirehoseSubscriptionBase {
   isProtogen(name: string = "") {
+    if(name.toLowerCase().endsWith("proot")) {
+      return true;
+    }
+    if(name.toLowerCase().split(".").includes("proot")) {
+      return true;
+    }
     return (name.toLowerCase().includes(' protogen')
       || name.toLowerCase().includes('protogen ')
       || name.toLowerCase().includes('protogen')
@@ -33,7 +39,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
         //console.log("is not protogen");
         runcheck = true;
       }
-      
+
       if (!user) {
         if (runcheck) {
           const profile = await agent.api.app.bsky.actor.getProfile({ actor: post.author })
