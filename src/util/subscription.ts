@@ -12,6 +12,7 @@ import {
   isCommit,
 } from '../lexicon/types/com/atproto/sync/subscribeRepos'
 import { Database } from '../db'
+import { AtpAgent } from '@atproto/api'
 
 export abstract class FirehoseSubscriptionBase {
   public sub: Subscription<RepoEvent>
@@ -34,39 +35,45 @@ export abstract class FirehoseSubscriptionBase {
     })
   }
 
-  abstract handleEvent(evt: RepoEvent): Promise<void>
+  abstract handleEvent(evt: RepoEvent, agent: AtpAgent): Promise<void>
 
-  async run(subscriptionReconnectDelay: number) {
+  async run(agent: AtpAgent, subscriptionReconnectDelay: number) {
     try {
       for await (const evt of this.sub) {
         try {
-          await this.handleEvent(evt)
+          await this.handleEvent(evt, agent)
         } catch (err) {
           console.error('repo subscription could not handle message', err)
         }
         // update stored cursor every 20 events or so
         if (isCommit(evt) && evt.seq % 20 === 0) {
-          await this.updateCursor(evt.seq)
+          await this.upsertCursor(evt.seq)
         }
       }
     } catch (err) {
       console.error('repo subscription errored', err)
-      setTimeout(() => this.run(subscriptionReconnectDelay), subscriptionReconnectDelay)
+      setTimeout(() => this.run(agent, subscriptionReconnectDelay), subscriptionReconnectDelay)
     }
   }
 
-  async updateCursor(cursor: number) {
-    await this.db
-      .updateTable('sub_state')
-      .set({ cursor })
-      .where('service', '=', this.service)
-      .execute()
+  async upsertCursor(cursor: number = 0, service: string = this.service) {
+    const state = await this.db
+      .selectFrom('sub_state')
+      .select(['service', 'cursor'])
+      .where('service', '=', service)
+      .executeTakeFirst()
+
+    if (state) {
+      await this.db.updateTable('sub_state').set({ cursor }).where('service', '=', service).execute()
+    } else {
+      await this.db.insertInto('sub_state').values({ cursor, service }).execute()
+    }
   }
 
   async getCursor(): Promise<{ cursor?: number }> {
     const res = await this.db
       .selectFrom('sub_state')
-      .selectAll()
+      .select('cursor')
       .where('service', '=', this.service)
       .executeTakeFirst()
     return res ? { cursor: res.cursor } : {}
