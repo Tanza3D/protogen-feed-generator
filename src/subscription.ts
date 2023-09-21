@@ -81,6 +81,8 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       || text.includes('cutie')
       || text.includes('woof')
       || text.includes('meow')
+      || text.includes('roomba')
+      || text.includes('toaster')
       || text.includes('>w<')
       || text.includes('^w^')
       || text.includes('^^')
