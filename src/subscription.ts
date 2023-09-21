@@ -35,8 +35,8 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
         || profile.data.displayName?.toLowerCase().includes('protogen')
         || profile.data.description?.toLowerCase().includes('protogen')
         || profile.data.description?.toLowerCase().includes('proot')
-        || post.record.text.toLowerCase().includes('#protogen')
-        || post.record.text.toLowerCase().includes('#proot')) {
+        /* || post.record.text.toLowerCase().includes('#protogen')
+        || post.record.text.toLowerCase().includes('#proot') */) {
           await this.db.insertInto('protogen').values({ did: post.author }).execute()
           console.log('\x1b[33mnew protogen collected!!\x1b[0m')
           console.log(`${post.author} is ${profile.data.handle} with display name '${profile.data.displayName}'`)
@@ -86,10 +86,14 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       // store protogen posts with correct feed
       let feed = ''
       if (protogen) {
-        console.log(`new protogenpost '${protogen.displayName}' @${protogen.handle}: '${post.record.text}'`)
+        console.log(`new proot post: '${protogen.displayName}' @${protogen.handle}: '${post.record.text}'`)
         feed = 'protogens'
       }
-
+      if( post.record.text.toLowerCase().includes('#protogen')
+      || post.record.text.toLowerCase().includes('#proot')) {
+        console.log(`new post about proot: '${protogen.displayName}' @${protogen.handle}: '${post.record.text}'`);
+        feed = 'protogens'
+      }
       await this.db
         .insertInto('post')
         .values({
