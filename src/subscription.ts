@@ -50,6 +50,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
     return (
       text.includes('furry')
       || text.includes('furryart')
+      || text.includes('proto')
       || text.includes('beep')
       || text.includes('fanart')
       || text.includes('ych')
