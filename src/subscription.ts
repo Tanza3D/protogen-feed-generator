@@ -91,7 +91,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       }
       if( post.record.text.toLowerCase().includes('#protogen')
       || post.record.text.toLowerCase().includes('#proot')) {
-        console.log(`new post about proot: '${protogen.displayName}' @${protogen.handle}: '${post.record.text}'`);
+        console.log(`new post about proot: '${post.record.text}'`);
         feed = 'protogens'
       }
       await this.db
