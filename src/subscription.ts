@@ -4,22 +4,46 @@ import { AtpAgent } from '@atproto/api'
 
 export class FirehoseSubscription extends FirehoseSubscriptionBase {
   isProtogen(name: string = "") {
-    if(name.toLowerCase().endsWith("proot")) {
+    if (name.toLowerCase().endsWith("proot")) {
       return true;
     }
-    if(name.toLowerCase().split(".").includes("proot")) {
+    if (name.toLowerCase().split(".").includes("proot")) {
+      return true;
+    }
+    if (name.toLowerCase().split(".").includes("protogen")) {
       return true;
     }
     return (name.toLowerCase().includes(' protogen')
       || name.toLowerCase().includes('protogen ')
+      || name.toLowerCase().includes(' protogens')
+      || name.toLowerCase().includes('protogens ')
       || name.toLowerCase().includes('protogen')
+      || name.toLowerCase().includes('protogens')
       || name.toLowerCase().includes(' proot')
+      || name.toLowerCase().includes(' proots')
       || name.toLowerCase().includes(' proot ')
+      || name.toLowerCase().includes(' proots ')
       || ((name.toLowerCase().includes('protogen') || name.toLowerCase().includes('proot')) && name.toLowerCase().includes('furry')));
   }
   isProtogenTag(name: string = "") {
     return (name.toLowerCase().includes('#protogen')
       || name.toLowerCase().includes('#proot'))
+  }
+
+  isFurry(name: string = "") {
+    // ? this check is used to see if a user kind of seems like a furry
+    // ? this just filters out any likely non-furries so we don't have to
+    // ? worry about processing their users, saves alot of space and time and
+    // ? yeah
+    if (this.isProtogen(name)) return true;
+    if (this.isProtogenTag(name)) return true;
+    return (name.toLowerCase().includes('#furry')
+      || name.toLowerCase().includes('#furryart')
+      || name.toLowerCase().includes('furry art')
+      || name.toLowerCase().includes('furryart')
+      || name.toLowerCase().includes('beep')
+      || name.toLowerCase().includes('cute')
+    )
   }
   async handleEvent(evt: RepoEvent, agent: AtpAgent) {
     if (!isCommit(evt)) return
@@ -35,7 +59,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
 
       // user not seen before, cache their profile
       var runcheck = false;
-      if (this.isProtogen(post.record.text) && !this.isProtogenTag(post.record.text)) {
+      if (this.isFurry(post.record.text)) {
         //console.log("is not protogen");
         runcheck = true;
       }
