@@ -32,9 +32,11 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
 
         if (
            profile.data.handle.toLowerCase().includes('protogen') 
-        || profile.data.displayName?.toLowerCase().includes('protogen')
-        || profile.data.description?.toLowerCase().includes('protogen')
-        || profile.data.description?.toLowerCase().includes('proot')
+           || profile.data.displayName?.toLowerCase().includes('protogen')
+        || profile.data.description?.toLowerCase().includes(' protogen')
+        || profile.data.description?.toLowerCase().includes('protogen ')
+        || profile.data.description?.toLowerCase().includes(' proot')
+        || profile.data.description?.toLowerCase().includes(' proot ')
         /* || post.record.text.toLowerCase().includes('#protogen')
         || post.record.text.toLowerCase().includes('#proot') */) {
           await this.db.insertInto('protogen').values({ did: post.author }).execute()
