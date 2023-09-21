@@ -11,14 +11,18 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       || name.toLowerCase().includes(' proot ')
       || ((name.toLowerCase().includes('protogen') || name.toLowerCase().includes('proot')) && name.toLowerCase().includes('furry')));
   }
+  isProtogenTag(name: string = "") {
+    return (name.toLowerCase().includes('#protogen')
+    || name.toLowerCase().includes('#proot'))
+  }
   async handleEvent(evt: RepoEvent, agent: AtpAgent) {
     if (!isCommit(evt)) return
     const ops = await getOpsByType(evt)
 
     // handle post creates
     for (const post of ops.posts.creates) {
-      if (!this.isProtogen(post.record.text)) {
-        console.log("is not protogen");
+      if (!this.isProtogen(post.record.text) && !this.isProtogenTag(post.record.text)) {
+        //console.log("is not protogen");
         return;
       }
       const user = await this.db
@@ -95,8 +99,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
         console.log(`new proot post: '${protogen.displayName}' @${protogen.handle}: '${post.record.text}'`)
         feed = 'protogens'
       }
-      if (post.record.text.toLowerCase().includes('#protogen')
-        || post.record.text.toLowerCase().includes('#proot')) {
+      if (this.isProtogenTag(post.record.text)) {
         console.log(`new post about proot: '${post.record.text}'`);
         feed = 'protogens'
       }
