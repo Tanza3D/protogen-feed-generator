@@ -13,7 +13,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
   }
   isProtogenTag(name: string = "") {
     return (name.toLowerCase().includes('#protogen')
-    || name.toLowerCase().includes('#proot'))
+      || name.toLowerCase().includes('#proot'))
   }
   async handleEvent(evt: RepoEvent, agent: AtpAgent) {
     if (!isCommit(evt)) return
@@ -28,60 +28,33 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
         .executeTakeFirst()
 
       // user not seen before, cache their profile
+      var runcheck = false;
+      if (this.isProtogen(post.record.text) && !this.isProtogenTag(post.record.text)) {
+        //console.log("is not protogen");
+        runcheck = true;
+      }
+      
       if (!user) {
-        if (!this.isProtogen(post.record.text) && !this.isProtogenTag(post.record.text)) {
-          //console.log("is not protogen");
-          return;
-        }
-        
-        const profile = await agent.api.app.bsky.actor.getProfile({ actor: post.author })
-        console.log(`fetched profile for ${post.author}: @${profile.data.handle} ${profile.data.displayName}`)
-        await this.db
-          .insertInto('user')
-          .values({
-            did: post.author,
-            handle: profile.data.handle,
-            displayName: profile.data.displayName,
-            bio: profile.data.description,
-            indexedAt: new Date().toISOString(),
-          })
-          .execute()
+        if (runcheck) {
+          const profile = await agent.api.app.bsky.actor.getProfile({ actor: post.author })
+          console.log(`fetched profile for ${post.author}: @${profile.data.handle} ${profile.data.displayName}`)
+          await this.db
+            .insertInto('user')
+            .values({
+              did: post.author,
+              handle: profile.data.handle,
+              displayName: profile.data.displayName,
+              bio: profile.data.description,
+              indexedAt: new Date().toISOString(),
+            })
+            .execute()
 
-        if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description)) {
-          await this.db.insertInto('protogen').values({ did: post.author }).execute()
-          console.log('\x1b[33mnew protogen collected!!\x1b[0m')
-          console.log(`${post.author} is ${profile.data.handle} with display name '${profile.data.displayName}'`)
-        } else {
-          console.log("is not protogen");
-        }
-      } else if (user.displayName === user.handle) {
-        // i was saving handle as displayName... :(
-        const profile = await agent.api.app.bsky.actor.getProfile({ actor: post.author })
-        console.log(`refetched invalid profile for ${post.author}: oldHandle=@${user.handle} newHandle=@${profile.data.handle} displayName='${profile.data.displayName}'`)
-        await this.db
-          .updateTable('user')
-          .set({
-            displayName: profile.data.displayName ?? null,
-            handle: profile.data.handle,
-          })
-          .where('did', '=', post.author)
-          .execute()
-
-        if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description)) {
-          const existingprotogen = await this.db
-            .selectFrom('protogen')
-            .select('did')
-            .where('did', '=', post.author)
-            .executeTakeFirst()
-
-          if (!existingprotogen) {
-            await this.db
-              .insertInto('protogen')
-              .values({ did: post.author })
-              .onConflict(oc => oc.doNothing())
-              .execute()
-            console.log('protogen collected from new display name!!!')
+          if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description)) {
+            await this.db.insertInto('protogen').values({ did: post.author }).execute()
+            console.log('\x1b[33mnew protogen collected!!\x1b[0m')
             console.log(`${post.author} is ${profile.data.handle} with display name '${profile.data.displayName}'`)
+          } else {
+            console.log("is not protogen");
           }
         }
       }
