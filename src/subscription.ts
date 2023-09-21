@@ -114,22 +114,22 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
 
       // ! note: remove user check, so if someone becomes protogen after a week they actually get picked up :)
       //if (!user) {
-        if (runcheck) {
-          await this.db.deleteFrom("user")
+      if (runcheck) {
+        await this.db.deleteFrom("user")
           .where('did', '=', post.author).execute();
-          const profile = await agent.api.app.bsky.actor.getProfile({ actor: post.author })
-          console.log(`fetched profile for ${post.author}: @${profile.data.handle} ${profile.data.displayName}`)
-          await this.db
-            .insertInto('user')
-            .values({
-              did: post.author,
-              handle: profile.data.handle,
-              displayName: profile.data.displayName,
-              bio: profile.data.description,
-              indexedAt: new Date().toISOString(),
-            })
-            .execute()
-
+        const profile = await agent.api.app.bsky.actor.getProfile({ actor: post.author })
+        console.log(`fetched profile for ${post.author}: @${profile.data.handle} ${profile.data.displayName}`)
+        await this.db
+          .insertInto('user')
+          .values({
+            did: post.author,
+            handle: profile.data.handle,
+            displayName: profile.data.displayName,
+            bio: profile.data.description,
+            indexedAt: new Date().toISOString(),
+          })
+          .execute()
+        if (!user) {
           if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description) ||
             post.record.text.toLowerCase().includes("i'm a protogen")
             || post.record.text.toLowerCase().includes("im a protogen")) {
@@ -140,6 +140,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
             console.log("is not protogen");
           }
         }
+      }
       //}
 
       // re-fetch db record
