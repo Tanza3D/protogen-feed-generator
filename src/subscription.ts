@@ -105,6 +105,13 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
         .where('did', '=', post.author)
         .executeTakeFirst()
 
+      var protogen = await this.db
+        .selectFrom('user')
+        .innerJoin('protogen', 'protogen.did', 'user.did')
+        .select(['displayName', 'handle'])
+        .where('protogen.did', '=', post.author)
+        .executeTakeFirst()
+
       // user not seen before, cache their profile
       var runcheck = false;
       if (this.isFurry(post.record.text)) {
@@ -112,6 +119,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
         runcheck = true;
       }
 
+      var recheck = false;
       // ! note: remove user check, so if someone becomes protogen after a week they actually get picked up :)
       //if (!user) {
       if (runcheck) {
@@ -129,13 +137,14 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
             indexedAt: new Date().toISOString(),
           })
           .execute()
-        if (!user) {
+        if (!protogen) {
           if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description) ||
             post.record.text.toLowerCase().includes("i'm a protogen")
             || post.record.text.toLowerCase().includes("im a protogen")) {
             await this.db.insertInto('protogen').values({ did: post.author }).execute()
             console.log('\x1b[33mnew protogen collected!!\x1b[0m')
             console.log(`${post.author} is ${profile.data.handle} with display name '${profile.data.displayName}'`)
+            recheck = true;
           } else {
             console.log("is not protogen");
           }
@@ -144,12 +153,14 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       //}
 
       // re-fetch db record
-      const protogen = await this.db
-        .selectFrom('user')
-        .innerJoin('protogen', 'protogen.did', 'user.did')
-        .select(['displayName', 'handle'])
-        .where('protogen.did', '=', post.author)
-        .executeTakeFirst()
+      if (recheck) {
+        protogen = await this.db
+          .selectFrom('user')
+          .innerJoin('protogen', 'protogen.did', 'user.did')
+          .select(['displayName', 'handle'])
+          .where('protogen.did', '=', post.author)
+          .executeTakeFirst()
+      }
 
       // store protogen posts with correct feed
       let feed = ''
