@@ -170,8 +170,8 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
 
       // store protogen posts with correct feed
       var skip = true;
-      if (post.record?.reply && runcheck) {
-      
+      if (post.record?.reply && (runcheck || protogen)) {
+        console.log(" THIS IS A REPLY ");
 
         if (protogen || 1 == 1) {
           var parentReplier = post.record?.reply.parent.uri.split("//")[1].split("/")[0];
