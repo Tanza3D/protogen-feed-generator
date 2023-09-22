@@ -1,6 +1,7 @@
 import { isCommit, OutputSchema as RepoEvent } from './lexicon/types/com/atproto/sync/subscribeRepos'
 import { FirehoseSubscriptionBase, getOpsByType } from './util/subscription'
 import { AtpAgent } from '@atproto/api'
+import { colours } from './colours'
 
 export class FirehoseSubscription extends FirehoseSubscriptionBase {
   isProtogen(name: string = "") {
@@ -129,7 +130,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
         await this.db.deleteFrom("user")
           .where('did', '=', post.author).execute();
         const profile = await agent.api.app.bsky.actor.getProfile({ actor: post.author })
-        console.log(`fetched profile for ${post.author}: @${profile.data.handle} ${profile.data.displayName}`)
+        console.log(colours.FgCyan + `fetched profile for ${post.author}: @${profile.data.handle} ${profile.data.displayName}`)
         await this.db
           .insertInto('user')
           .values({
@@ -145,14 +146,14 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
             post.record.text.toLowerCase().includes("i'm a protogen")
             || post.record.text.toLowerCase().includes("im a protogen")) {
             await this.db.insertInto('protogen').values({ did: post.author }).execute()
-            console.log('\x1b[33mnew protogen collected!!\x1b[0m')
-            console.log(`${post.author} is ${profile.data.handle} with display name '${profile.data.displayName}'`)
+            console.log(colours.FgWhite + colours.BgGreen + 'new protogen collected!!' + colours.Reset)
+            console.log(colours.FgYellow + `${post.author} is ${profile.data.handle} with display name '${profile.data.displayName}'` + colours.Reset)
             recheck = true;
           } else {
-            console.log("is not protogen");
+            console.log(colours.FgRed + "is not protogen" + colours.Reset);
           }
         } else {
-          console.log("already checked!");
+          console.log(colours.FgWhite + "already checked!" + colours.Reset);
         }
       }
       //}
@@ -169,9 +170,59 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
 
       // store protogen posts with correct feed
 
-      if(post.record?.reply) {
+      if (post.record?.reply && runcheck) {
+        var skip = true;
+
+        if (protogen || 1 == 1) {
+          var parentReplier = post.record?.reply.parent.uri.split("//")[1].split("/")[0];
+          if (parentReplier == post.author) {
+            // * show reply if replying to self, ui sorts this out nicely so it's not a mess
+            skip = false;
+          } else {
+            const user = await this.db
+              .selectFrom('user')
+              .select(['did', 'displayName', 'handle'])
+              .where('did', '=', parentReplier)
+              .executeTakeFirst()
+
+            if (!user) {
+              const parentProfile = await agent.api.app.bsky.actor.getProfile({ actor: parentReplier })
+              console.log(colours.FgBlue + "checking reply parent to see if protogen : " + parentProfile.data.handle + colours.Reset);
+              if (this.isProtogen(parentProfile.data.handle) || this.isProtogen(parentProfile.data.displayName) || this.isProtogen(parentProfile.data.description)) {
+                skip = false;
+
+                await this.db
+                  .insertInto('user')
+                  .values({
+                    did: parentReplier,
+                    handle: parentProfile.data.handle,
+                    displayName: parentProfile.data.displayName,
+                    bio: parentProfile.data.description,
+                    indexedAt: new Date().toISOString(),
+                  }).execute();
+
+                await this.db.insertInto('protogen').values({ did: parentReplier }).execute()
+                console.log(colours.FgGreen + 'new protogen collected [through reply parent]' + colours.Reset)
+              }
+            } else {
+              console.log(colours.FgBlue + "reply parent already in db : " + user.handle + colours.Reset);
+              protogen = await this.db
+              .selectFrom('user')
+              .innerJoin('protogen', 'protogen.did', 'user.did')
+              .select(['displayName', 'handle'])
+              .where('protogen.did', '=', post.author)
+              .executeTakeFirst()
+              if(protogen) {
+                skip = false;
+              } else {
+                console.log(colours.FgRed + "is not protogen" + colours.Reset);
+              }
+            }
+            // * check if user is protogen
+          }
+        }
         // ? doing this down here let's us still keep track of new users without having to add their replies to the feed
-        continue;
+        if (skip) continue;
       }
       let feed = ''
       if (protogen) {
