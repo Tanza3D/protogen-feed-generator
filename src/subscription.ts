@@ -171,8 +171,6 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       // store protogen posts with correct feed
       var skip = true;
       if (post.record?.reply && (runcheck || protogen)) {
-        console.log(" THIS IS A REPLY ");
-
         if (protogen || 1 == 1) {
           var parentReplier = post.record?.reply.parent.uri.split("//")[1].split("/")[0];
           if (parentReplier == post.author) {
@@ -207,12 +205,12 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
             } else {
               console.log(colours.FgBlue + "reply parent already in db : " + user.handle + colours.Reset);
               protogen = await this.db
-              .selectFrom('user')
-              .innerJoin('protogen', 'protogen.did', 'user.did')
-              .select(['displayName', 'handle'])
-              .where('protogen.did', '=', post.author)
-              .executeTakeFirst()
-              if(protogen) {
+                .selectFrom('user')
+                .innerJoin('protogen', 'protogen.did', 'user.did')
+                .select(['displayName', 'handle'])
+                .where('protogen.did', '=', post.author)
+                .executeTakeFirst()
+              if (protogen) {
                 skip = false;
               } else {
                 console.log(colours.FgRed + "is not protogen" + colours.Reset);
@@ -235,7 +233,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
         console.log(`new post about proot: '${post.record.text}'`);
         feed = 'protogens'
       }
-      if(skip) {
+      if (skip) {
         feed = "";
       }
       if (feed != "") {
