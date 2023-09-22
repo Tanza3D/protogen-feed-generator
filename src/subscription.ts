@@ -91,6 +91,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       || text.includes('rawr')
       || text.includes('sona')
       || text.includes('fursona')
+      || text.includes('crt')
     )
   }
   async handleEvent(evt: RepoEvent, agent: AtpAgent) {
@@ -99,6 +100,10 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
 
     // handle post creates
     for (const post of ops.posts.creates) {
+      if(post.record?.reply) {
+        //console.log("is reply, ignoring");
+        continue;
+      }
       const user = await this.db
         .selectFrom('user')
         .select(['did', 'displayName', 'handle'])
