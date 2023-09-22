@@ -169,9 +169,9 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       }
 
       // store protogen posts with correct feed
-
+      var skip = true;
       if (post.record?.reply && runcheck) {
-        var skip = true;
+      
 
         if (protogen || 1 == 1) {
           var parentReplier = post.record?.reply.parent.uri.split("//")[1].split("/")[0];
@@ -223,6 +223,8 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
         }
         // ? doing this down here let's us still keep track of new users without having to add their replies to the feed
         if (skip) continue;
+      } else {
+        skip = false;
       }
       let feed = ''
       if (protogen) {
@@ -232,6 +234,9 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       if (this.isProtogenTag(post.record.text) || this.isProtogenStrict(post.record.text)) {
         console.log(`new post about proot: '${post.record.text}'`);
         feed = 'protogens'
+      }
+      if(skip) {
+        feed = "";
       }
       if (feed != "") {
         await this.db
