@@ -91,6 +91,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       || text.includes('rawr')
       || text.includes('sona')
       || text.includes('fursona')
+      || text.includes(' vr ')
       || text.includes('crt')
     )
   }
@@ -100,10 +101,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
 
     // handle post creates
     for (const post of ops.posts.creates) {
-      if(post.record?.reply) {
-        //console.log("is reply, ignoring");
-        continue;
-      }
+
       const user = await this.db
         .selectFrom('user')
         .select(['did', 'displayName', 'handle'])
@@ -170,6 +168,11 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       }
 
       // store protogen posts with correct feed
+
+      if(post.record?.reply) {
+        // ? doing this down here let's us still keep track of new users without having to add their replies to the feed
+        continue;
+      }
       let feed = ''
       if (protogen) {
         console.log(`new proot post: '${protogen.displayName}' @${protogen.handle}: '${post.record.text}'`)
