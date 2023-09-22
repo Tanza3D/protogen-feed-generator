@@ -148,6 +148,8 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
           } else {
             console.log("is not protogen");
           }
+        } else {
+          console.log("already checked!");
         }
       }
       //}
