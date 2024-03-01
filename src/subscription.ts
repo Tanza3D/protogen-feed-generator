@@ -103,6 +103,15 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
     // handle post creates
     for (const post of ops.posts.creates) {
 
+
+      var endTime = new Date(); 
+      var startTime = new Date(post.record.createdAt);
+      var difference = endTime.getTime() - startTime.getTime(); // This will give difference in milliseconds
+      var resultInMinutes = Math.round(difference / 60000);
+      var resultInSeconds = Math.round(difference / 1000); // Convert to seconds
+      
+
+  
       const user = await this.db
         .selectFrom('user')
         .select(['did', 'displayName', 'handle'])
@@ -127,6 +136,10 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       // ! note: remove user check, so if someone becomes protogen after a week they actually get picked up :)
       //if (!user) {
       if (runcheck) {
+
+        if(resultInSeconds > 5) {
+          console.log("running " + resultInSeconds + " seconds behind (" + resultInMinutes + " mins)")
+        }
         await this.db.deleteFrom("user")
           .where('did', '=', post.author).execute();
         const profile = await agent.api.app.bsky.actor.getProfile({ actor: post.author })

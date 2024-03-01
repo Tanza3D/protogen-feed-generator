@@ -1,5 +1,5 @@
 import { Database } from './db'
-import { DidResolver } from '@atproto/did-resolver'
+import { DidResolver } from '@atproto/identity'
 import { AtpAgent } from '@atproto/api'
 
 export type AppContext = {

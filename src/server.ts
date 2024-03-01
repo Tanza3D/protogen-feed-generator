@@ -1,7 +1,7 @@
 import http from 'http'
 import events from 'events'
 import express from 'express'
-import { DidResolver, MemoryCache } from '@atproto/did-resolver'
+import { DidResolver, MemoryCache } from '@atproto/identity'
 import { AtpAgent } from '@atproto/api'
 import { createServer } from './lexicon'
 import feedGeneration from './methods/feed-generation'
@@ -40,10 +40,11 @@ export class FeedGenerator {
     const agent = new AtpAgent({ service: cfg.bskyServiceUrl })
 
     const didCache = new MemoryCache()
-    const didResolver = new DidResolver(
-      { plcUrl: 'https://plc.directory' },
-      didCache,
-    )
+    const didResolver = new DidResolver({
+      plcUrl: 'https://plc.directory',
+      didCache
+    })
+
 
     const server = createServer({
       validateResponse: true,
