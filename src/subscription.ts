@@ -40,62 +40,27 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       || name.toLowerCase().includes('#protogenfeedbsky'))
   }
 
-  isFurry(name: string = "") {
-    // ? this check is used to see if a user kind of seems like a furry
-    // ? this just filters out any likely non-furries so we don't have to
-    // ? worry about processing their users, saves alot of space and time and
-    // ? yeah
-    var text = name.toLowerCase();
-    if (this.isProtogen(name)) return true;
-    if (this.isProtogenTag(name)) return true;
-    return (
-      text.includes('furry')
-      || text.includes('furryart')
-      || text.includes('proto')
-      || text.includes('beep')
-      || text.includes('fanart')
-      || text.includes('ych')
-      || text.includes('blahaj')
-      || text.includes('blåhaj')
-      || text.includes('furries')
-      || text.includes('fursuit')
-      || text.includes('silly')
-      || text.includes('fursuiter')
-      || text.includes('gay')
-      || text.includes('trans')
-      || text.includes('snoot')
-      || text.includes('doodle')
-      || text.includes('thigh')
-      || text.includes('x3')
-      || text.includes(':3')
-      || text.includes('owo')
-      || text.includes('uwu')
-      || text.includes('commission')
-      || text.includes('cute')
-      || text.includes('fox')
-      || text.includes('wolf')
-      || text.includes('adhd')
-      || text.includes('anthro')
-      || text.includes('boop')
-      || text.includes('blender')
-      || text.includes('vrchat')
-      || text.includes('doggo')
-      || text.includes('cutie')
-      || text.includes('woof')
-      || text.includes('meow')
-      || text.includes('roomba')
-      || text.includes('toaster')
-      || text.includes('>w<')
-      || text.includes('^w^')
-      || text.includes('^^')
-      || text.includes('^^')
-      || text.includes('rawr')
-      || text.includes('sona')
-      || text.includes('fursona')
-      || text.includes(' vr ')
-      || text.includes('crt')
-    )
+
+  isFurry(name = "") {
+    // List of furry-related terms
+    const furryRelated = [
+      "furry", "furryart", "proto", "beep", "fanart", "ych", "blahaj", "furries", 
+      "fursuit", "fursuiter", "gay", "trans", "snoot", "doodle", "x3", ":3", "owo", 
+      "uwu", "cute", "fox", "wolf", "adhd", "anthro", "boop", "blender", "vrchat", 
+      "doggo", "cutie", "woof", "meow", "roomba", "toaster", ">w<", "^w^", "^^", 
+      "^ ^", "rawr", "sona", " vr "
+    ];
+  
+    // Convert the input string to lowercase for case-insensitive matching
+    const lowercasedName = name.toLowerCase();
+  
+    // Filter the furryRelated array to find matches within the input string
+    const matches = furryRelated.filter(term => lowercasedName.includes(term));
+  
+    // Return the array of matches
+    return matches;
   }
+
   async handleEvent(evt: RepoEvent, agent: AtpAgent) {
     if (!isCommit(evt)) return
     const ops = await getOpsByType(evt)
@@ -125,8 +90,9 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
 
       // user not seen before, cache their profile
       var runcheck = false;
-      if (this.isFurry(post.record.text)) {
-        //console.log("is not protogen");
+      var furryref = this.isFurry(post.record.text).length;
+      if (furryref > 0) {
+        console.log("is furry on matching ", furryref);
         runcheck = true;
       }
 
