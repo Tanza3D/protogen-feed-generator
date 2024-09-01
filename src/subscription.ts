@@ -237,7 +237,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       } else {
         skip = false;
       }
-      if(post.record.text.includes("sex") || post.record.text.includes("nazi") || post.record.text.includes("fascist") || post.record.text.includes("faggot") || post.record.text.includes("nigger") || post.record.text.includes("religious")) {
+      if(post.record.text.includes("nazi") || post.record.text.includes("fascist") || post.record.text.includes("faggot") || post.record.text.includes("nigger") || post.record.text.includes("religious")) {
         continue;
       }
       let feed = ''
