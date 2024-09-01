@@ -102,8 +102,6 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
 
     // handle post creates
     for (const post of ops.posts.creates) {
-
-
       var endTime = new Date(); 
       var startTime = new Date(post.record.createdAt);
       var difference = endTime.getTime() - startTime.getTime(); // This will give difference in milliseconds
@@ -196,10 +194,12 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
               .where('did', '=', parentReplier)
               .executeTakeFirst()
 
+              console.log("Checking if " + user?.displayName + " is a protogen");
             if (!user) {
               const parentProfile = await agent.api.app.bsky.actor.getProfile({ actor: parentReplier })
               console.log(colours.FgBlue + "checking reply parent to see if protogen : " + parentProfile.data.handle + colours.Reset);
               if (this.isProtogen(parentProfile.data.handle) || this.isProtogen(parentProfile.data.displayName) || this.isProtogen(parentProfile.data.description)) {
+                console.log("yes they are");
                 skip = false;
 
                 await this.db
@@ -221,7 +221,7 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
                 .selectFrom('user')
                 .innerJoin('protogen', 'protogen.did', 'user.did')
                 .select(['displayName', 'handle'])
-                .where('protogen.did', '=', post.author)
+                .where('protogen.did', '=', parentReplier)
                 .executeTakeFirst()
               if (par_protogen) {
                 skip = false;
@@ -236,6 +236,9 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
         if (skip) continue;
       } else {
         skip = false;
+      }
+      if(post.record.text.includes("sex") || post.record.text.includes("nazi") || post.record.text.includes("fascist") || post.record.text.includes("faggot") || post.record.text.includes("nigger") || post.record.text.includes("religious")) {
+        continue;
       }
       let feed = ''
       if (protogen) {
