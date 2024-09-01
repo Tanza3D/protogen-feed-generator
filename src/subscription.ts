@@ -90,9 +90,9 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
 
       // user not seen before, cache their profile
       var runcheck = false;
-      var furryref = this.isFurry(post.record.text).length;
-      if (furryref > 0) {
-        console.log("is furry on matching ", furryref);
+      var furryref : Array<string> = this.isFurry(post.record.text);
+      if (furryref.length > 0) {
+        console.log("is furry on matching " + furryref.join(", "));
         runcheck = true;
       }
 
