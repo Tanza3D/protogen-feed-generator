@@ -44,19 +44,19 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
   isFurry(name = "") {
     // List of furry-related terms
     const furryRelated = [
-      "furry", "furryart", "proto", "beep", "fanart", "ych", "blahaj", "furries", 
-      "fursuit", "fursuiter", "gay", "trans", "snoot", "doodle", "x3", ":3", "owo", 
-      "uwu", "cute", "fox", "wolf", "adhd", "anthro", "boop", "blender", "vrchat", 
-      "doggo", "cutie", "woof", "meow", "roomba", "toaster", ">w<", "^w^", "^^", 
+      "furry", "furryart", "proto", "beep", "fanart", "ych", "blahaj", "furries",
+      "fursuit", "fursuiter", "gay", "trans", "snoot", "doodle", "x3", ":3", "owo",
+      "uwu", "cute", "fox", "wolf", "adhd", "anthro", "boop", "blender", "vrchat",
+      "doggo", "cutie", "woof", "meow", "roomba", "toaster", ">w<", "^w^", "^^",
       "^ ^", "rawr", "sona", " vr "
     ];
-  
+
     // Convert the input string to lowercase for case-insensitive matching
     const lowercasedName = name.toLowerCase();
-  
+
     // Filter the furryRelated array to find matches within the input string
     const matches = furryRelated.filter(term => lowercasedName.includes(term));
-  
+
     // Return the array of matches
     return matches;
   }
@@ -66,174 +66,179 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
     const ops = await getOpsByType(evt)
 
     // handle post creates
+
     for (const post of ops.posts.creates) {
-      var endTime = new Date(); 
-      var startTime = new Date(post.record.createdAt);
-      var difference = endTime.getTime() - startTime.getTime(); // This will give difference in milliseconds
-      var resultInMinutes = Math.round(difference / 60000);
-      var resultInSeconds = Math.round(difference / 1000); // Convert to seconds
-      
+      try {
+        var endTime = new Date();
+        var startTime = new Date(post.record.createdAt);
+        var difference = endTime.getTime() - startTime.getTime(); // This will give difference in milliseconds
+        var resultInMinutes = Math.round(difference / 60000);
+        var resultInSeconds = Math.round(difference / 1000); // Convert to seconds
 
-  
-      const user = await this.db
-        .selectFrom('user')
-        .select(['did', 'displayName', 'handle'])
-        .where('did', '=', post.author)
-        .executeTakeFirst()
 
-      var protogen = await this.db
-        .selectFrom('user')
-        .innerJoin('protogen', 'protogen.did', 'user.did')
-        .select(['displayName', 'handle'])
-        .where('protogen.did', '=', post.author)
-        .executeTakeFirst()
 
-      // user not seen before, cache their profile
-      var runcheck = false;
-      var furryref : Array<string> = this.isFurry(post.record.text);
-      if (furryref.length > 0) {
-        console.log("is furry on matching " + furryref.join(", "));
-        runcheck = true;
-      }
+        const user = await this.db
+          .selectFrom('user')
+          .select(['did', 'displayName', 'handle'])
+          .where('did', '=', post.author)
+          .executeTakeFirst()
 
-      var recheck = false;
-      // ! note: remove user check, so if someone becomes protogen after a week they actually get picked up :)
-      //if (!user) {
-      if (runcheck) {
-
-        if(resultInSeconds > 5) {
-          console.log("running " + resultInSeconds + " seconds behind (" + resultInMinutes + " mins)")
-        }
-        await this.db.deleteFrom("user")
-          .where('did', '=', post.author).execute();
-        const profile = await agent.api.app.bsky.actor.getProfile({ actor: post.author })
-        console.log(colours.FgCyan + `fetched profile for ${post.author}: @${profile.data.handle} ${profile.data.displayName}`)
-        await this.db
-          .insertInto('user')
-          .values({
-            did: post.author,
-            handle: profile.data.handle,
-            displayName: profile.data.displayName,
-            bio: profile.data.description,
-            indexedAt: new Date().toISOString(),
-          })
-          .execute()
-        if (!protogen) {
-          if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description) ||
-            post.record.text.toLowerCase().includes("i'm a protogen")
-            || post.record.text.toLowerCase().includes("im a protogen")) {
-            await this.db.insertInto('protogen').values({ did: post.author }).execute()
-            console.log(colours.FgWhite + colours.BgGreen + 'new protogen collected!!' + colours.Reset)
-            console.log(colours.FgYellow + `${post.author} is ${profile.data.handle} with display name '${profile.data.displayName}'` + colours.Reset)
-            recheck = true;
-          } else {
-            console.log(colours.FgRed + "is not protogen" + colours.Reset);
-          }
-        } else {
-          console.log(colours.FgWhite + "already checked!" + colours.Reset);
-        }
-      }
-      //}
-
-      // re-fetch db record
-      if (recheck) {
-        protogen = await this.db
+        var protogen = await this.db
           .selectFrom('user')
           .innerJoin('protogen', 'protogen.did', 'user.did')
           .select(['displayName', 'handle'])
           .where('protogen.did', '=', post.author)
           .executeTakeFirst()
-      }
 
-      // store protogen posts with correct feed
-      var skip = true;
-      if (post.record?.reply && (runcheck || protogen)) {
-        if (protogen) {
-          var parentReplier = post.record?.reply.parent.uri.split("//")[1].split("/")[0];
-          if (parentReplier == post.author) {
-            // * show reply if replying to self, ui sorts this out nicely so it's not a mess
-            skip = false;
-          } else {
-            const user = await this.db
-              .selectFrom('user')
-              .select(['did', 'displayName', 'handle'])
-              .where('did', '=', parentReplier)
-              .executeTakeFirst()
+        // user not seen before, cache their profile
+        var runcheck = false;
+        var furryref: Array<string> = this.isFurry(post.record.text);
+        if (furryref.length > 0) {
+          console.log("is furry on matching " + furryref.join(", "));
+          runcheck = true;
+        }
 
-              console.log("Checking if " + user?.displayName + " is a protogen");
-            if (!user) {
-              const parentProfile = await agent.api.app.bsky.actor.getProfile({ actor: parentReplier })
-              console.log(colours.FgBlue + "checking reply parent to see if protogen : " + parentProfile.data.handle + colours.Reset);
-              if (this.isProtogen(parentProfile.data.handle) || this.isProtogen(parentProfile.data.displayName) || this.isProtogen(parentProfile.data.description)) {
-                console.log("yes they are");
-                skip = false;
+        var recheck = false;
+        // ! note: remove user check, so if someone becomes protogen after a week they actually get picked up :)
+        //if (!user) {
+        if (runcheck) {
 
-                await this.db
-                  .insertInto('user')
-                  .values({
-                    did: parentReplier,
-                    handle: parentProfile.data.handle,
-                    displayName: parentProfile.data.displayName,
-                    bio: parentProfile.data.description,
-                    indexedAt: new Date().toISOString(),
-                  }).execute();
-
-                await this.db.insertInto('protogen').values({ did: parentReplier }).execute()
-                console.log(colours.FgGreen + 'new protogen collected [through reply parent]' + colours.Reset)
-              }
+          if (resultInSeconds > 5) {
+            console.log("running " + resultInSeconds + " seconds behind (" + resultInMinutes + " mins)")
+          }
+          await this.db.deleteFrom("user")
+            .where('did', '=', post.author).execute();
+          const profile = await agent.api.app.bsky.actor.getProfile({ actor: post.author })
+          console.log(colours.FgCyan + `fetched profile for ${post.author}: @${profile.data.handle} ${profile.data.displayName}`)
+          await this.db
+            .insertInto('user')
+            .values({
+              did: post.author,
+              handle: profile.data.handle,
+              displayName: profile.data.displayName,
+              bio: profile.data.description,
+              indexedAt: new Date().toISOString(),
+            })
+            .execute()
+          if (!protogen) {
+            if (this.isProtogen(profile.data.handle) || this.isProtogen(profile.data.displayName) || this.isProtogen(profile.data.description) ||
+              post.record.text.toLowerCase().includes("i'm a protogen")
+              || post.record.text.toLowerCase().includes("im a protogen")) {
+              await this.db.insertInto('protogen').values({ did: post.author }).execute()
+              console.log(colours.FgWhite + colours.BgGreen + 'new protogen collected!!' + colours.Reset)
+              console.log(colours.FgYellow + `${post.author} is ${profile.data.handle} with display name '${profile.data.displayName}'` + colours.Reset)
+              recheck = true;
             } else {
-              console.log(colours.FgBlue + "reply parent already in db : " + user.handle + colours.Reset);
-              var par_protogen = await this.db
-                .selectFrom('user')
-                .innerJoin('protogen', 'protogen.did', 'user.did')
-                .select(['displayName', 'handle'])
-                .where('protogen.did', '=', parentReplier)
-                .executeTakeFirst()
-              if (par_protogen) {
-                skip = false;
-              } else {
-                console.log(colours.FgRed + "is not protogen" + colours.Reset);
-              }
+              console.log(colours.FgRed + "is not protogen" + colours.Reset);
             }
-            // * check if user is protogen
+          } else {
+            console.log(colours.FgWhite + "already checked!" + colours.Reset);
           }
         }
-        // ? doing this down here let's us still keep track of new users without having to add their replies to the feed
-        if (skip) continue;
-      } else {
-        skip = false;
-      }
-      if(post.record.text.includes("nazi") || post.record.text.includes("fascist") || post.record.text.includes("faggot") || post.record.text.includes("nigger") || post.record.text.includes("religious")) {
-        continue;
-      }
-      let feed = ''
-      if (protogen) {
-        console.log(`new proot post: '${protogen.displayName}' @${protogen.handle}: '${post.record.text}'`)
-        feed = 'protogens'
-      }
-      if (this.isProtogenTag(post.record.text) || this.isProtogenStrict(post.record.text)) {
-        console.log(`new post about proot: '${post.record.text}'`);
-        feed = 'protogens'
-      }
-      if (skip) {
-        feed = "";
-      }
-      if (feed != "") {
-        await this.db
-          .insertInto('post')
-          .values({
-            uri: post.uri,
-            cid: post.cid,
-            replyParent: post.record?.reply?.parent.uri ?? null,
-            replyRoot: post.record?.reply?.root.uri ?? null,
-            indexedAt: new Date().toISOString(),
-            text: post.record.text,
-            feed: feed,
-            author: post.author,
-            likeCount: 0,
-          })
-          .onConflict(oc => oc.doNothing())
-          .execute()
+        //}
+
+        // re-fetch db record
+        if (recheck) {
+          protogen = await this.db
+            .selectFrom('user')
+            .innerJoin('protogen', 'protogen.did', 'user.did')
+            .select(['displayName', 'handle'])
+            .where('protogen.did', '=', post.author)
+            .executeTakeFirst()
+        }
+
+        // store protogen posts with correct feed
+        var skip = true;
+        if (post.record?.reply && (runcheck || protogen)) {
+          if (protogen) {
+            var parentReplier = post.record?.reply.parent.uri.split("//")[1].split("/")[0];
+            if (parentReplier == post.author) {
+              // * show reply if replying to self, ui sorts this out nicely so it's not a mess
+              skip = false;
+            } else {
+              const user = await this.db
+                .selectFrom('user')
+                .select(['did', 'displayName', 'handle'])
+                .where('did', '=', parentReplier)
+                .executeTakeFirst()
+
+              console.log("Checking if " + user?.displayName + " is a protogen");
+              if (!user) {
+                const parentProfile = await agent.api.app.bsky.actor.getProfile({ actor: parentReplier })
+                console.log(colours.FgBlue + "checking reply parent to see if protogen : " + parentProfile.data.handle + colours.Reset);
+                if (this.isProtogen(parentProfile.data.handle) || this.isProtogen(parentProfile.data.displayName) || this.isProtogen(parentProfile.data.description)) {
+                  console.log("yes they are");
+                  skip = false;
+
+                  await this.db
+                    .insertInto('user')
+                    .values({
+                      did: parentReplier,
+                      handle: parentProfile.data.handle,
+                      displayName: parentProfile.data.displayName,
+                      bio: parentProfile.data.description,
+                      indexedAt: new Date().toISOString(),
+                    }).execute();
+
+                  await this.db.insertInto('protogen').values({ did: parentReplier }).execute()
+                  console.log(colours.FgGreen + 'new protogen collected [through reply parent]' + colours.Reset)
+                }
+              } else {
+                console.log(colours.FgBlue + "reply parent already in db : " + user.handle + colours.Reset);
+                var par_protogen = await this.db
+                  .selectFrom('user')
+                  .innerJoin('protogen', 'protogen.did', 'user.did')
+                  .select(['displayName', 'handle'])
+                  .where('protogen.did', '=', parentReplier)
+                  .executeTakeFirst()
+                if (par_protogen) {
+                  skip = false;
+                } else {
+                  console.log(colours.FgRed + "is not protogen" + colours.Reset);
+                }
+              }
+              // * check if user is protogen
+            }
+          }
+          // ? doing this down here let's us still keep track of new users without having to add their replies to the feed
+          if (skip) continue;
+        } else {
+          skip = false;
+        }
+        if (post.record.text.includes("nazi") || post.record.text.includes("fascist") || post.record.text.includes("faggot") || post.record.text.includes("nigger") || post.record.text.includes("religious")) {
+          continue;
+        }
+        let feed = ''
+        if (protogen) {
+          console.log(`new proot post: '${protogen.displayName}' @${protogen.handle}: '${post.record.text}'`)
+          feed = 'protogens'
+        }
+        if (this.isProtogenTag(post.record.text) || this.isProtogenStrict(post.record.text)) {
+          console.log(`new post about proot: '${post.record.text}'`);
+          feed = 'protogens'
+        }
+        if (skip) {
+          feed = "";
+        }
+        if (feed != "") {
+          await this.db
+            .insertInto('post')
+            .values({
+              uri: post.uri,
+              cid: post.cid,
+              replyParent: post.record?.reply?.parent.uri ?? null,
+              replyRoot: post.record?.reply?.root.uri ?? null,
+              indexedAt: new Date().toISOString(),
+              text: post.record.text,
+              feed: feed,
+              author: post.author,
+              likeCount: 0,
+            })
+            .onConflict(oc => oc.doNothing())
+            .execute()
+        }
+      } catch(e) {
+          console.log(e);
       }
     }
 
