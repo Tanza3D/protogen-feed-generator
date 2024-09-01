@@ -39,7 +39,7 @@ export abstract class FirehoseSubscriptionBase {
 
   async run(agent: AtpAgent, subscriptionReconnectDelay: number) {
     try {
-      for await (const evt of this.sub) {
+      for (const evt of this.sub) {
         try {
           // no await, no waiting :)
           this.handleEvent(evt, agent)
