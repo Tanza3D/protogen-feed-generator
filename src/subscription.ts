@@ -48,7 +48,8 @@ export class FirehoseSubscription extends FirehoseSubscriptionBase {
       "fursuit", "fursuiter", "gay", "trans", "snoot", "doodle", "x3", ":3", "owo",
       "uwu", "cute", "fox", "wolf", "adhd", "anthro", "boop", "blender", "vrchat",
       "doggo", "cutie", "woof", "meow", "roomba", "toaster", ">w<", "^w^", "^^",
-      "^ ^", "rawr", "sona", " vr "
+      "^ ^", "rawr", "sona", " vr ", 
+      "vore", "inflation", "yiff" // ok lets be fair
     ];
 
     // Convert the input string to lowercase for case-insensitive matching
